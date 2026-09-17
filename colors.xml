@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="stage">#FF000000</color>
+    <color name="charcoal">#FF141418</color>
+    <color name="charcoal_2">#FF1B1B20</color>
+    <color name="graphite">#FF26262D</color>
+    <color name="line">#29F3F1EC</color>
+    <color name="smoke">#FFA3A1AA</color>
+    <color name="dim">#FF75737C</color>
+    <color name="paper">#FFF3F1EC</color>
+    <color name="tungsten">#FFF4C27A</color>
+</resources>

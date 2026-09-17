@@ -1,0 +1,62 @@
+name: Build APK
+
+# Builds the app on GitHub's servers and publishes a downloadable APK.
+# Runs on every push, and can be started by hand from the Actions tab.
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # The Android SDK is already installed on GitHub's Ubuntu runners.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build the debug APK
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      # The debug APK is signed with Android's standard debug key, which is
+      # what makes it installable. A release APK would be unsigned and would
+      # refuse to install.
+      - name: Rename the APK
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/Frame.apk
+          ls -lh out/
+
+      - name: Attach the APK to this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: Frame-apk
+          path: out/Frame.apk
+          if-no-files-found: error
+
+      # Also publish it as a release, which gives a permanent download link
+      # that can be opened directly on a phone.
+      - name: Publish a download link
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest out/Frame.apk \
+            --title "Frame (latest build)" \
+            --notes "Android app built from commit ${GITHUB_SHA::7}. Download Frame.apk below and open it on your phone to install."
